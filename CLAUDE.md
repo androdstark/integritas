@@ -133,6 +133,7 @@ integritas/
 ├── docs/
 │   ├── api-sources.md           # Estado real de cada API (acceso vs scraping)
 │   └── legal.md                 # Marco legal aplicable
+├── .gitignore                   # Nunca subir .env ni __pycache__
 ├── CLAUDE.md                    # Este archivo
 └── README.md
 ```
@@ -142,11 +143,12 @@ integritas/
 ## Fases de desarrollo
 
 ### Fase 0 — Setup (ahora)
-- [ ] Repo creado ✅
-- [ ] CLAUDE.md ✅
+- [x] Repo creado ✅
+- [x] CLAUDE.md ✅
+- [ ] Crear `.gitignore` ← **hacer primero antes de cualquier código**
+- [ ] Docker-compose con PostgreSQL local
 - [ ] Mapear qué fuentes tienen API real vs requieren scraping
 - [ ] Definir esquema de base de datos inicial
-- [ ] Docker-compose con PostgreSQL local
 
 ### Fase 1 — ETL básico (MVP)
 - [ ] Conector MEF: consulta por DNI → contratos públicos
@@ -210,6 +212,60 @@ integritas/
 8. My direct instructions always override these rules.
 9. Responde en español salvo que yo escriba en inglés.
 10. Si hay ambigüedad, da la respuesta más probable y señala la duda al final.
+
+---
+
+## Entorno de desarrollo local
+
+- **PC principal**: Ubuntu 25, carpeta `~/projects/integritas/`
+- **Servidor**: Hetzner VPS (mismo que Zhinova)
+- **Flujo de trabajo**:
+  1. Claude Code desarrolla en `~/projects/integritas/` (PC local)
+  2. `git push origin main` desde el PC
+  3. `git pull origin main` en el servidor Hetzner para deploy
+
+### .gitignore obligatorio — crear antes de cualquier código
+
+```bash
+cat > .gitignore << 'EOF'
+# Python
+.env
+*.env
+.env.*
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.next/
+
+# Logs y temporales
+*.log
+.DS_Store
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+EOF
+```
+
+### Variables de entorno (nunca en git)
+
+Crear `backend/.env` local — **este archivo nunca se sube**:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/integritas
+ANTHROPIC_API_KEY=sk-ant-...
+DEBUG=true
+```
 
 ---
 
