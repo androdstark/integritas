@@ -1,288 +1,212 @@
-# CLAUDE.md — integritas
+# Garendil — CLAUDE.md
 
-Archivo de contexto para Claude Code. Lee este archivo antes de escribir cualquier línea de código.
-
----
-
-## Qué es este proyecto
-
-**Integritas** (nombre técnico) / **Mírantir** (nombre de producto) es una plataforma pública de transparencia que genera un **Índice de Exposición al Riesgo (IER)** por funcionario público peruano.
-
-No acusa ni condena. Cruza datos abiertos del Estado y expone señales de riesgo de forma auditable. El output es siempre un score 0.0–1.0 con desglose de variables.
-
-Referencia directa: [Cerebro Digital](https://github.com/brunoclz) de Bruno César (Brasil, 2026) — cruzó 70+ bases de datos usando el CPF de políticos. Perú tiene su equivalente: DNI (personas) + RUC (empresas).
+> Documento de contexto para LLM. Proporciona toda la información necesaria para que Claude opere como asistente técnico del proyecto Garendil sin necesidad de explicaciones adicionales en cada sesión.
 
 ---
 
-## Estado actual
+## Identidad del proyecto
 
-- Concepto definido, arquitectura diseñada
-- Sin código inicial — este repo es el punto de partida
-- Stack elegido, fuentes de datos mapeadas
-- Pendiente: implementación del ETL, motor de scoring, API y frontend
+**Garendil** es un sistema público de scoring de riesgo de corrupción para funcionarios peruanos. Es un proyecto cívico-tecnológico de impacto social construido sobre datos abiertos y transparencia radical.
+
+- **Sector:** CivicTech — transparencia pública, anticorrupción
+- **Alcance:** Funcionarios públicos peruanos (municipal, regional, nacional)
+- **Estado actual:** Concepto definido — modelo IER en diseño
+- **Repositorio:** github.com/rodhandev/garendil (público)
+- **Dominio futuro:** garendil.pe (pendiente)
+
+### Etimología del nombre
+
+**Garendil** = **Gar** (Sindarin: sostener, guardar) + **en** (Quenya: fluir) + **dil** (Quenya: devoto, el que sirve con amor). Significado compuesto: *"El guardián devoto"* o *"el que sostiene con devoción lo que fluye"*. El nombre refleja la misión del proyecto: custodiar la verdad pública de forma permanente y sin ceder.
 
 ---
 
-## Stack técnico
+## El núcleo del sistema — Índice de Exposición al Riesgo (IER)
 
-| Capa | Tecnología |
+El **IER** es un score numérico de **0 a 100** por funcionario que cruza múltiples fuentes de datos públicos:
+
+| # | Dimensión | Fuente de datos |
+|---|---|---|
+| 1 | Declaraciones juradas de bienes | SUNAT / SERVIR |
+| 2 | Procesos disciplinarios | SERVIR / Contraloría |
+| 3 | Sentencias y procesos penales | Poder Judicial |
+| 4 | Contratos con el Estado | SEACE |
+| 5 | Incremento patrimonial inconsistente | Cruce declaraciones vs. ingresos |
+| 6 | Historial de cargos | Rotación inusual, cargos simultáneos |
+
+Un score más alto indica mayor exposición al riesgo de corrupción. El score es **público, trazable y auditable** — cada punto del IER debe tener una fuente verificable.
+
+---
+
+## Stack tecnológico
+
+```
+Backend:     Python · FastAPI · PostgreSQL
+Scraping:    BeautifulSoup / Scrapy (datos abiertos peruanos)
+LLM:         Claude (procesamiento de documentos, destilación, análisis)
+Formatos:    .md como formato primario para LLM (38% menos tokens que JSON)
+             CSV incrustado en .md para datos tabulares masivos
+             YAML para relaciones jerárquicas (funcionario → institución → contratos)
+```
+
+### Por qué .md como formato primario
+
+Los archivos `.md` son el formato óptimo como fuente para LLMs:
+- Consumen hasta **38% menos tokens** que JSON con el mismo contenido
+- Son legibles por humanos para auditoría
+- Permiten incrustar CSV y YAML para datos estructurados
+- Evitar JSON como fuente directa al LLM salvo casos específicos de APIs
+
+---
+
+## Módulos del sistema
+
+### Módulo 01 · IER Core
+
+El motor central de scoring. Agrega y pondera las 6 dimensiones del IER por funcionario. Cada actualización del score está documentada con fuente, fecha y delta generado.
+
+### Módulo 09 · Noticias — Scoring de Veracidad y Riesgo
+
+Pipeline de ingesta y evaluación de noticias que alimenta el IER:
+
+1. Scraping / ingesta diaria de noticias (medios peruanos, portales oficiales, redes)
+2. Clasificación automática por funcionario mencionado (NLP / NER)
+3. Evaluación de veracidad de la noticia (score 0.0–1.0): tipo de medio, respaldo de otras fuentes, declaraciones oficiales
+4. Impacto ponderado al IER según nivel de veracidad
+5. Registro documentado en `.md` por evento
+
+**Estructura del archivo `.md` por evento de noticia:**
+```
+- Nombre del funcionario
+- Cargo
+- Fecha de la noticia
+- Titular
+- Medio
+- URL fuente
+- Nivel de veracidad asignado (0.0–1.0)
+- Justificación del nivel de veracidad
+- Resumen del acto descrito
+- Impacto calculado al IER (delta)
+- Fecha de registro en el sistema
+```
+
+### Módulo 10 · Jurídico — Decisión Asistida con Lógica Difusa
+
+Sistema de apoyo a decisiones jurídicas basado en leyes vigentes y jurisprudencia:
+
+1. Destilación de leyes vigentes a `.md` estructurados
+2. Base de casos anteriores indexados como `.md` con metadatos
+3. Motor de lógica difusa que calcula probabilidad de resultados posibles
+4. Salida con referencias exactas: artículos de ley + casos previos consultados
+
+**Por qué lógica difusa:** El derecho no opera en binario. La lógica difusa asigna grados de verdad (0.0–1.0) a proposiciones jurídicas, siendo más honesta que un modelo determinista para modelar la ambigüedad legal inherente.
+
+**Relación con Garendil:** Puede operar como módulo integrado (evalúa peso jurídico de procesos del IER) o como producto independiente (LegalIA Perú).
+
+**Próximos pasos del módulo jurídico:**
+- [ ] Definir esquema `.md` estándar para leyes vigentes peruanas
+- [ ] Definir esquema `.md` estándar para sentencias y casos judiciales
+- [ ] Identificar fuentes oficiales (SPIJ, El Peruano, Poder Judicial)
+- [ ] Investigar motores de lógica difusa en Python: `scikit-fuzzy`, `simpful`
+- [ ] Prototipo: destilar 5 leyes y 5 sentencias a `.md`
+
+### Módulo 11 · Competencia Dual — Inteligencia & Moral
+
+Score bidimensional por funcionario que mide dos ejes complementarios:
+
+| Dimensión | Fuente | Notas |
+|---|---|---|
+| **Moral** | IER existente | Historial de procesos, declaraciones, contratos, noticias verificadas |
+| **Inteligencia** | Pruebas de competencia periódicas | Voluntarias — aceptación o negativa es dato público |
+
+**Principio clave:** Un funcionario muy inteligente sin moral es peligroso; uno muy moral sin capacidad intelectual es ineficaz. Ninguna dimensión compensa la ausencia de la otra.
+
+**Integración con Galendor:** El módulo puede apoyarse en la plataforma Galendor para diseñar y administrar las pruebas de competencia intelectual.
+
+**Output:** Score dual (Inteligencia / Moral) visible en el perfil público del funcionario, con historial de evolución longitudinal.
+
+---
+
+## Marco legal habilitante
+
+| Ley | Descripción |
 |---|---|
-| Backend API | Python 3.12 + FastAPI |
-| Base de datos | PostgreSQL 16 |
-| ETL / scraping | Python + requests + BeautifulSoup + Playwright |
-| Motor de scoring | scikit-fuzzy (lógica difusa) |
-| Grafos de relaciones | NetworkX + Pyvis |
-| IA narrativa | Anthropic Claude API (claude-sonnet-4-6) |
-| Frontend | React + Tailwind CSS |
-| Hosting | Render o Hetzner VPS |
-| Control de versiones | Git + GitHub |
+| **Ley 27806** | Ley de Transparencia y Acceso a la Información Pública |
+| **Ley 27815** | Código de Ética de la Función Pública |
+| **Portal de Transparencia Estándar** | Datos públicos disponibles por mandato legal |
+| **SEACE** | Sistema Electrónico de Contrataciones del Estado |
+
+Todo el sistema opera dentro del marco de datos públicos — no hay extracción de datos privados ni vulneración de protección de datos personales.
 
 ---
 
-## Fuentes de datos públicas
+## Modelo de sostenibilidad
 
-| Fuente | Contenido | URL |
+| Opción | Pros | Contras |
 |---|---|---|
-| Portal de Transparencia Estándar | Directorio funcionarios, planillas, declaraciones juradas | transparencia.gob.pe |
-| Portal de Transparencia Económica (MEF) | Proveedores del Estado, contratos 1999–hoy, transferencias | mef.gob.pe |
-| OSCE / SEACE | Licitaciones y contrataciones públicas | seace.osce.gob.pe |
-| SUNAT RUC | Empresas, representantes legales, vinculaciones | sunat.gob.pe |
-| JNE | Declaraciones de bienes y rentas de candidatos y electos | jne.gob.pe |
-| Contraloría General | Informes de auditoría, observaciones, sanciones | contraloria.gob.pe |
-| INFObras (MEF) | Avance y costo de obras públicas | infobras.vivienda.gob.pe |
-| RENIEC | Verificación de identidad | reniec.gob.pe |
-| Poder Judicial / INDECOPI | Procesos legales públicos | pj.gob.pe |
-
-**Identificadores clave:**
-- `DNI` — personas naturales (equivalente al CPF brasileño)
-- `RUC` — personas jurídicas (equivalente al CNPJ brasileño)
+| ONG / asociación sin fines de lucro | Credibilidad, acceso a donaciones | Burocracia, dependencia de fondos externos |
+| SaaS para empresas (due diligence) | Revenue propio y sostenible | Posible conflicto de interés percibido |
+| Alianza con universidad | Legitimidad académica, rigor | Lento, burocrático |
+| Periodismo de datos + patrocinios | Alcance masivo | Difícil de monetizar directamente |
 
 ---
 
-## Motor de scoring — Índice de Exposición al Riesgo (IER)
+## Fuentes de datos públicos a mapear
 
-El IER es un valor continuo [0.0 – 1.0] calculado por lógica difusa. **Nunca se usa la palabra "corrupto".**
+- SUNAT — declaraciones juradas de bienes
+- SERVIR — historial de funcionarios, procesos disciplinarios
+- Contraloría General de la República
+- Poder Judicial — sentencias y procesos penales
+- SEACE — contratos con el Estado
+- Portal de Transparencia Estándar
+- SPIJ — Sistema Peruano de Información Jurídica
+- El Peruano — normas legales oficiales
 
-### Variables de entrada
+---
 
-| Variable | Peso | Señal de riesgo |
+## Próximos pasos globales del proyecto
+
+- [ ] Mapear todas las fuentes de datos públicos disponibles y sus APIs/portales
+- [ ] Diseñar metodología de scoring IER v1 (ponderación de factores)
+- [ ] Scraping piloto de 100 funcionarios para validar datos
+- [ ] Definir modelo de sostenibilidad
+- [ ] Buscar aliados: universidades, ONGs anticorrupción, medios de comunicación
+- [ ] Definir si el módulo jurídico es parte de Garendil o proyecto independiente (LegalIA Perú)
+
+---
+
+## Relación con el ecosistema de proyectos
+
+Garendil opera dentro de un ecosistema de proyectos del mismo autor:
+
+| Proyecto | Descripción | Relación con Garendil |
 |---|---|---|
-| Contratos con empresas de familiares | Alto | Empresa del cónyuge/hijo en contratos de su entidad |
-| Discrepancia patrimonial | Alto | Declaración de bienes no justifica ingresos conocidos |
-| Historial Contraloría | Alto | Auditorías previas con hallazgos graves |
-| Vínculos empresariales directos | Medio | Funcionario como representante legal de empresa contratista |
-| Concentración de contratos | Medio | Una empresa gana repetidamente licitaciones de la misma entidad |
-| Precios vs. mercado | Medio | Precio adjudicado muy por encima del valor de mercado |
-| Funcionarios fantasma | Bajo-Medio | Persona en planilla sin presencia verificable |
-
-### Proceso de cálculo
-
-1. Entrada: DNI del funcionario
-2. ETL: consulta en paralelo las fuentes listadas arriba
-3. Normalización: cada variable → valor difuso [0.0–1.0]
-4. Agregación: ponderación por peso + defuzzificación
-5. Salida: IER + desglose de contribuciones por variable
+| **Galendor** | EdTech preuniversitaria (FSRS-7, MCQs con IA) | Plataforma de pruebas para Módulo 11 |
+| **Zhinova** | Automatización web con IA (en producción) | Stack tecnológico compartido |
+| **Rivengard** | Delivery interurbano | Ecosistema del mismo autor |
+| **Durinforge** | Marketplace de construcción | Ecosistema del mismo autor |
+| **Makinor** | Robot Jetson Nano con IA local | Ecosistema del mismo autor |
 
 ---
 
-## Arquitectura del proyecto
+## Principios de diseño del sistema
 
-```
-integritas/
-├── backend/
-│   ├── app/
-│   │   ├── main.py              # FastAPI entrypoint
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       ├── funcionarios.py   # GET /funcionarios/{dni}
-│   │   │       └── scoring.py        # GET /scoring/{dni}
-│   │   ├── etl/
-│   │   │   ├── mef.py           # Portal Transparencia MEF
-│   │   │   ├── osce.py          # SEACE / OSCE
-│   │   │   ├── sunat.py         # SUNAT RUC
-│   │   │   ├── jne.py           # JNE declaraciones
-│   │   │   ├── contraloria.py   # Contraloría General
-│   │   │   └── infobras.py      # INFObras
-│   │   ├── scoring/
-│   │   │   ├── engine.py        # Motor de lógica difusa
-│   │   │   ├── variables.py     # Definición de variables y pesos
-│   │   │   └── fuzzy_rules.py   # Reglas difusas
-│   │   ├── models/
-│   │   │   ├── funcionario.py   # Modelo DB funcionario
-│   │   │   └── score.py         # Modelo DB resultado IER
-│   │   ├── schemas/
-│   │   │   ├── funcionario.py   # Pydantic schemas
-│   │   │   └── scoring.py       # Pydantic schemas output
-│   │   └── db/
-│   │       ├── session.py       # SQLAlchemy session
-│   │       └── models.py        # ORM models
-│   ├── migrations/              # Alembic
-│   ├── tests/
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   └── App.tsx
-│   ├── package.json
-│   └── Dockerfile
-├── infra/
-│   ├── docker-compose.yml
-│   └── nginx.conf
-├── docs/
-│   ├── api-sources.md           # Estado real de cada API (acceso vs scraping)
-│   └── legal.md                 # Marco legal aplicable
-├── .gitignore                   # Nunca subir .env ni __pycache__
-├── CLAUDE.md                    # Este archivo
-└── README.md
-```
+1. **Trazabilidad total** — cada punto del IER tiene fuente, fecha y justificación
+2. **Auditabilidad humana** — los `.md` son legibles por personas, no solo por máquinas
+3. **Datos abiertos únicamente** — sin extracción de datos privados
+4. **Lógica difusa sobre certezas falsas** — el sistema es honesto sobre la incertidumbre
+5. **Transparencia radical** — el propio código y metodología son públicos
+6. **Impacto social sobre monetización** — el proyecto prioriza utilidad pública
 
 ---
 
-## Fases de desarrollo
+## Instrucciones para Claude
 
-### Fase 0 — Setup (ahora)
-- [x] Repo creado ✅
-- [x] CLAUDE.md ✅
-- [ ] Crear `.gitignore` ← **hacer primero antes de cualquier código**
-- [ ] Docker-compose con PostgreSQL local
-- [ ] Mapear qué fuentes tienen API real vs requieren scraping
-- [ ] Definir esquema de base de datos inicial
+Cuando trabajes en este proyecto:
 
-### Fase 1 — ETL básico (MVP)
-- [ ] Conector MEF: consulta por DNI → contratos públicos
-- [ ] Conector OSCE/SEACE: licitaciones relacionadas
-- [ ] Conector JNE: declaraciones de bienes
-- [ ] Almacenamiento en PostgreSQL
-- [ ] CLI de prueba: `python -m integritas.cli query --dni 12345678`
-
-### Fase 2 — Motor de scoring
-- [ ] Implementar variables de entrada (tabla de arriba)
-- [ ] Motor scikit-fuzzy con reglas definidas
-- [ ] API FastAPI: `GET /scoring/{dni}` → retorna IER + desglose
-- [ ] Tests unitarios del motor
-
-### Fase 3 — Frontend
-- [ ] Búsqueda por DNI o nombre
-- [ ] Perfil de funcionario con IER y gráfico de contribuciones
-- [ ] Grafo de relaciones (NetworkX → D3.js/Pyvis)
-- [ ] Explicación pública de la metodología
-
-### Fase 4 — Producción
-- [ ] Deploy en Hetzner VPS (mismo servidor que Zhinova)
-- [ ] Dominio y SSL
-- [ ] Actualización batch de datos (semanal)
-- [ ] Consulta legal antes de lanzamiento público
-
----
-
-## Decisiones pendientes (resolver antes de codear cada módulo)
-
-1. **APIs vs scraping**: ¿Qué fuentes tienen acceso programático real? Verificar antes de implementar cada conector.
-2. **Scoring inicial**: Empezar solo con reglas (sin ML). ML supervisado cuando haya datos etiquetados suficientes.
-3. **Naturaleza del proyecto**: Fase 1 = civic tech abierto/open source. Fase 2+ evaluar modelo B2G/B2B.
-4. **Frecuencia de actualización**: Batch semanal por defecto. On-demand para consultas individuales (con rate limit).
-5. **Unidad de análisis**: Persona natural (por DNI) como unidad primaria. Cargo como contexto secundario.
-
----
-
-## Consideraciones legales (críticas)
-
-- Usar **exclusivamente datos de fuentes abiertas** del Estado Peruano
-- Output siempre como **score de riesgo**, nunca como acusación o sentencia
-- Mostrar siempre el **desglose de variables** que contribuyeron al IER (auditable)
-- Marco legal aplicable:
-  - Ley N°27806 — Transparencia y Acceso a Información Pública
-  - Ley N°29733 — Protección de Datos Personales
-- Consultar con abogado especializado antes de lanzamiento público
-- No usar el término "corrupto" en ninguna parte del producto
-
----
-
-## Reglas de código
-
-1. Think before acting. Read existing files before writing code.
-2. Be concise in output but thorough in reasoning.
-3. Prefer editing over rewriting whole files.
-4. Do not re-read files you already read unless the file may have changed.
-5. Test your code before declaring done.
-6. No sycophantic openers or closing fluff.
-7. Keep solutions simple and direct.
-8. My direct instructions always override these rules.
-9. Responde en español salvo que yo escriba en inglés.
-10. Si hay ambigüedad, da la respuesta más probable y señala la duda al final.
-
----
-
-## Entorno de desarrollo local
-
-- **PC principal**: Ubuntu 25, carpeta `~/projects/integritas/`
-- **Servidor**: Hetzner VPS (mismo que Zhinova)
-- **Flujo de trabajo**:
-  1. Claude Code desarrolla en `~/projects/integritas/` (PC local)
-  2. `git push origin main` desde el PC
-  3. `git pull origin main` en el servidor Hetzner para deploy
-
-### .gitignore obligatorio — crear antes de cualquier código
-
-```bash
-cat > .gitignore << 'EOF'
-# Python
-.env
-*.env
-.env.*
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-*.egg-info/
-.pytest_cache/
-
-# Node / Frontend
-node_modules/
-dist/
-build/
-.next/
-
-# Logs y temporales
-*.log
-.DS_Store
-*.sqlite3
-
-# IDE
-.vscode/
-.idea/
-EOF
-```
-
-### Variables de entorno (nunca en git)
-
-Crear `backend/.env` local — **este archivo nunca se sube**:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/integritas
-ANTHROPIC_API_KEY=sk-ant-...
-DEBUG=true
-```
-
----
-
-## Comandos útiles
-
-```bash
-# Setup local
-docker-compose up -d           # Levanta PostgreSQL + Redis
-cd backend && pip install -r requirements.txt
-uvicorn app.main:app --reload   # API en http://localhost:8000
-
-# Migraciones
-alembic upgrade head
-
-# Tests
-pytest tests/ -v
-
-# Query de prueba (cuando esté implementado)
-curl http://localhost:8000/api/v1/scoring/12345678
-```
+- El nombre del proyecto es **Garendil** (no Integritas — ese fue el nombre anterior)
+- Los archivos fuente para el LLM deben ser `.md`, no JSON
+- Toda decisión del sistema debe ser **auditable y trazable**
+- El IER es un score de **riesgo**, no de **culpabilidad** — esta distinción es crítica
+- La lógica difusa es el motor apropiado para ambigüedad legal y moral
+- El proyecto es **peruano** — las fuentes de datos, leyes y contexto son del sistema público peruano
+- Cuando generes esquemas `.md` para eventos de noticias o módulos jurídicos, seguir las estructuras definidas en este documento
