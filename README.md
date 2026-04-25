@@ -1,4 +1,4 @@
-# Integritas — Scoring de Riesgo de Funcionarios Peruanos
+# garendil — Scoring de Riesgo de Funcionarios Peruanos
 
 > **Índice de Exposición al Riesgo (IER)** — plataforma pública que cruza bases de datos del Estado peruano para generar un score de riesgo por funcionario público.
 
